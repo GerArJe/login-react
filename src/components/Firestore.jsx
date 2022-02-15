@@ -4,6 +4,10 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  limit,
+  orderBy,
+  query,
+  startAfter,
   updateDoc,
 } from "firebase/firestore";
 import React from "react";
@@ -16,17 +20,37 @@ const Firestore = ({ user }) => {
   const [tarea, setTarea] = React.useState("");
   const [modoEdicion, setModoEdicion] = React.useState(false);
   const [id, setId] = React.useState("");
+  const [ultimo, setUltimo] = React.useState(null);
+  const [desactivar, setDesactivar] = React.useState(false);
 
   React.useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        const data = await getDocs(collection(db, user.uid));
+        setDesactivar(true);
+        const q = query(collection(db, user.uid), limit(2), orderBy("fecha"));
+        const data = await getDocs(q);
         const arrayData = data.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        setUltimo(data.docs[data.docs.length - 1]);
+
         console.log(arrayData);
         setTareas(arrayData);
+
+        const q2 = query(
+          collection(db, user.uid),
+          limit(2),
+          orderBy("fecha"),
+          startAfter(data.docs[data.docs.length - 1])
+        );
+        const data2 = await getDocs(q2);
+        if (data2.empty) {
+          console.log("no hay mas documentos");
+          setDesactivar(true);
+        } else {
+          setDesactivar(false);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -34,6 +58,40 @@ const Firestore = ({ user }) => {
 
     obtenerDatos();
   }, [user.uid]);
+
+  const siguiente = async () => {
+    try {
+      const q = query(
+        collection(db, user.uid),
+        limit(2),
+        orderBy("fecha"),
+        startAfter(ultimo)
+      );
+      const data = await getDocs(q);
+      const arrayData = data.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTareas([...tareas, ...arrayData]);
+      setUltimo(data.docs[data.docs.length - 1]);
+
+      const q2 = query(
+        collection(db, user.uid),
+        limit(2),
+        orderBy("fecha"),
+        startAfter(data.docs[data.docs.length - 1])
+      );
+      const data2 = await getDocs(q2);
+      if (data2.empty) {
+        console.log("no hay mas documentos");
+        setDesactivar(true);
+      } else {
+        setDesactivar(false);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const agregar = async (e) => {
     e.preventDefault();
@@ -124,6 +182,15 @@ const Firestore = ({ user }) => {
               </li>
             ))}
           </ul>
+          <div className="d-grid gap-2">
+            <button
+              className="btn btn-info mt-2 btn-sm"
+              onClick={() => siguiente()}
+              disabled={desactivar}
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
         <div className="col-md-6">
           <h3>{modoEdicion ? "Editar Tarea" : "Agregar Tarea"}</h3>
