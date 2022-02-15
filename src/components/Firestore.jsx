@@ -8,6 +8,8 @@ import {
 } from "firebase/firestore";
 import React from "react";
 import { db } from "../firebase";
+import moment from "moment";
+import "moment/locale/es";
 
 const Firestore = ({ user }) => {
   const [tareas, setTareas] = React.useState([]);
@@ -106,7 +108,7 @@ const Firestore = ({ user }) => {
           <ul className="list-group">
             {tareas.map((item) => (
               <li className="list-group-item" key={item.id}>
-                {item.name}
+                {item.name} - {moment(item.fecha).format("LLL")}
                 <button
                   className="btn btn-danger btn-sm float-end"
                   onClick={() => eliminar(item.id)}

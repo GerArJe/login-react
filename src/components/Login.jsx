@@ -9,10 +9,10 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   let navigate = useNavigate();
-  const [email, setEmail] = React.useState("prueba@prueba.com");
-  const [password, setPassword] = React.useState("123456");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState(null);
-  const [esRegistro, setEsRegistro] = React.useState(true);
+  const [esRegistro, setEsRegistro] = React.useState(false);
 
   const procesarDatos = (e) => {
     e.preventDefault();
@@ -116,6 +116,16 @@ const Login = () => {
               >
                 {esRegistro ? "Ya tienes cuenta?" : "No tienes cuenta?"}
               </button>
+
+              {!esRegistro && (
+                <button
+                  className="btn btn-danger btn-lg btn-sm mt-2"
+                  type="button"
+                  onClick={() => navigate("/reset")}
+                >
+                  Recuperar contraseña
+                </button>
+              )}
             </div>
           </form>
         </div>
